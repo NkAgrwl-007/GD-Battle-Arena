@@ -12,8 +12,8 @@
     "typescript": "typescript",
     "typescriptreact": "typescriptreact"
   },
-  "files.associations": {
-    "*.css": "tailwindcss"
-  },
+  // "files.associations": {
+  //   "*.css": "tailwindcss"
+  // },
   "tailwindCSS.emmetCompletions": true
 }
