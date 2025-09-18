@@ -1,21 +1,42 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import SelfPractice from "./pages/SelfPractice";
-import GroupPractice from "./pages/GroupPractice";
-import Reports from "./pages/Reports";
-import Leaderboard from "./pages/Leaderboard";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import AuthLayout from './components/Layout/AuthLayout';
+import MainLayout from './components/Layout/MainLayout';
+import LoginForm from './components/Auth/LoginForm';
+import MainDashboard from './components/Dashboard/MainDashboard';
+import CreateRoom from './components/Room/CreateRoom';
+// import RoomList from './components/Room/RoomList';
+import { Toaster } from 'react-hot-toast';
 
-export default function App() {
+function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/self-practice" element={<SelfPractice />} />
-      <Route path="/group-practice" element={<GroupPractice />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/leaderboard" element={<Leaderboard />} />
-    </Routes>
+    <AuthProvider>
+      {/* <Router> */}
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<AuthLayout><LoginForm /></AuthLayout>} />
+            <Route path="/login" element={<AuthLayout><LoginForm /></AuthLayout>} />
+            <Route path="/dashboard" element={<MainLayout><MainDashboard /></MainLayout>} />
+            <Route path="/create-room" element={<MainLayout><CreateRoom /></MainLayout>} />
+            {/* <Route path="/rooms" element={<MainLayout><RoomList /></MainLayout>} /> */}
+          </Routes>
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              },
+            }}
+          />
+        </div>
+      {/* </Router> */}
+    </AuthProvider>
   );
 }
+
+export default App;
