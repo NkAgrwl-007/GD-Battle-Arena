@@ -9,10 +9,6 @@ import roomRoutes from "./routes/roomRoutes.js";
 // ✅ Load env FIRST (very important)
 dotenv.config();
 
-// ✅ Debug (remove later)
-if (!process.env.MONGO_URI) {
-  console.error("❌ MONGO_URI is missing in .env");
-}
 
 const app = express();
 const httpServer = createServer(app);
@@ -41,16 +37,14 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  try {
-    await connectDB();
+  httpServer.listen(PORT, async () => {
+    console.log(`🔥 Server running on port ${PORT}`);
 
-    httpServer.listen(PORT, () => {
-      console.log(`🔥 Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error("❌ Failed to start server:", err.message);
-    process.exit(1);
-  }
+    const dbConnected = await connectDB();
+    if (!dbConnected) {
+      console.warn("⚠️ API is running, but database-dependent features may be unavailable.");
+    }
+  });
 };
 
 startServer();
