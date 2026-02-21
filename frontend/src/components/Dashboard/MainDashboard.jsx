@@ -1,30 +1,38 @@
-import React from 'react';
-import StatsOverview from './StatsOverview';
-import LevelSelector from './LevelSelector';
-import QuickActions from './QuickActions';
-import FloatingButton from '../Common/FloatingButton';
-import { Brain } from 'lucide-react';
+import React from "react";
+import StatsOverview from "./StatsOverview";
+import LevelSelector from "./LevelSelector";
+import QuickActions from "./QuickActions";
+import FloatingButton from "../Common/FloatingButton";
+import { Brain } from "lucide-react";
 
 const MainDashboard = () => {
   return (
-    <div className="page">
-      <div className="container">
-        <div className="section-hero">
-          {/* Hero Section */}
-          <div className="text-center mb-16 animate-slide-up">
-            <h1 className="heading-hero mb-6">
-              GD Battle Arena
-            </h1>
-            <p className="text-large mb-8 max-w-3xl mx-auto">
-              Master the art of group discussions with AI-powered analysis and real-time feedback
-            </p>
-          </div>
+    <div className="dashboard">
+      {/* LEFT PANEL — Stats */}
+      <aside className="left-panel">
+        <StatsOverview />
+      </aside>
 
-          <StatsOverview />
-          <LevelSelector />
-          <QuickActions />
+      {/* CENTER — Main Content */}
+      <main className="center-panel">
+        {/* ✅ Compact Dashboard Header */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">GD Battle Arena</h1>
+          <p className="dashboard-subtitle">
+            AI-powered group discussion training and real-time performance feedback
+          </p>
         </div>
-      </div>
+
+        <LevelSelector />
+      </main>
+
+      {/* RIGHT PANEL — Quick Actions */}
+      <aside className="right-panel">
+        <QuickActions />
+      </aside>
+
+      {/* Floating AI Button */}
+      <FloatingButton icon={<Brain size={22} />} />
     </div>
   );
 };

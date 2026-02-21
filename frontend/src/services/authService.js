@@ -1,74 +1,84 @@
-// Simulated authentication service
-const API_BASE_URL = 'http://localhost:5000/api'; // Replace with actual API URL
+import axios from "axios";
+
+const API_BASE_URL = "http://localhost:5000/api";
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+// 🔐 attach token automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("gd_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const authService = {
+  // ================= LOGIN =================
   login: async (email, password) => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simulate different user scenarios
-    if (email === 'demo@gdArena.com') {
-      return {
-        id: 1,
-        username: 'ArenaChampion',
-        email: email,
-        level: 25,
-        totalGames: 147,
-        winRate: 78,
-        averageScore: 85.4,
-        avatar: null,
-        createdAt: new Date().toISOString()
-      };
+    try {
+      const res = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      const { token, user } = res.data;
+
+      // ✅ store
+      localStorage.setItem("gd_token", token);
+      localStorage.setItem("gd_user", JSON.stringify(user));
+
+      return user;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Login failed"
+      );
     }
-    
-    // Default successful login
-    return {
-      id: 2,
-      username: 'DiscussionMaster',
-      email: email,
-      level: 12,
-      totalGames: 45,
-      winRate: 65,
-      averageScore: 76.8,
-      avatar: null,
-      createdAt: new Date().toISOString()
-    };
   },
 
+  // ================= REGISTER =================
   register: async (userData) => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    return {
-      id: 3,
-      username: userData.username,
-      email: userData.email,
-      level: 1,
-      totalGames: 0,
-      winRate: 0,
-      averageScore: 0,
-      avatar: null,
-      createdAt: new Date().toISOString()
-    };
+    try {
+      const res = await api.post("/auth/register", userData);
+
+      const { token, user } = res.data;
+
+      // ✅ store
+      localStorage.setItem("gd_token", token);
+      localStorage.setItem("gd_user", JSON.stringify(user));
+
+      return user;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Registration failed"
+      );
+    }
   },
 
+  // ================= LOGOUT =================
   logout: () => {
-    // Clear any stored tokens/data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    localStorage.removeItem("gd_token");
+    localStorage.removeItem("gd_user");
   },
 
+  // ================= REFRESH =================
   refreshToken: async () => {
-    // Implement token refresh logic
-    const token = localStorage.getItem('authToken');
-    if (!token) throw new Error('No token found');
-    
-    // Make API call to refresh token
-    // Return new token
+    try {
+      const res = await api.post("/auth/refresh");
+      const { token } = res.data;
+      localStorage.setItem("gd_token", token);
+      return token;
+    } catch (err) {
+      throw new Error("Token refresh failed");
+    }
   },
 
+  // ================= CURRENT USER =================
   getCurrentUser: () => {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem("gd_user");
     return user ? JSON.parse(user) : null;
-  }
+  },
 };

@@ -1,16 +1,16 @@
 // src/components/Game/GameArena/Level1Arena.jsx
-import React, { useState, useEffect } from 'react';
-import { useGame } from '../../../contexts/GameContext';
-import { useVoiceRecording } from '../../../hooks/useVoiceRecording';
-import { useGameTimer } from '../../../hooks/useGameTimer';
-import { useSpeechRecognition } from '../../../hooks/useSpeechRecognition';
-import VoiceRecorder from '../Voice/VoiceRecorder';
-import SpeechTimer from '../Voice/SpeechTimer';
-import ParticipantsList from '../UI/ParticipantsList';
-import TopicDisplay from '../UI/TopicDisplay';
-import LiveScoreboard from '../Scoring/LiveScoreboard';
-import AIFeedback from '../Scoring/AIFeedback';
-import { Mic, MicOff, Play, Pause, SkipForward, Users } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useGame } from "../../../contexts/GameContext";
+import { useVoiceRecording } from "../../../hooks/useVoiceRecording";
+import { useGameTimer } from "../../../hooks/useGameTimer";
+import { useSpeechRecognition } from "../../../hooks/useSpeechRecognition";
+import VoiceRecorder from "../Voice/VoiceRecorder";
+import SpeechTimer from "../Voice/SpeechTimer";
+import ParticipantsList from "../UI/ParticipantsList";
+import TopicDisplay from "../UI/TopicDisplay";
+import LiveScoreboard from "../Scoring/LiveScoreboard";
+import AIFeedback from "../Scoring/AIFeedback";
+import { Play, Pause, SkipForward, Users } from "lucide-react";
 
 const Level1Arena = () => {
   const {
@@ -21,7 +21,7 @@ const Level1Arena = () => {
     gameSettings,
     nextTurn,
     submitRecording,
-    aiAnalysis
+    aiAnalysis,
   } = useGame();
 
   const {
@@ -29,7 +29,7 @@ const Level1Arena = () => {
     audioBlob,
     startRecording,
     stopRecording,
-    resetRecording
+    resetRecording,
   } = useVoiceRecording();
 
   const {
@@ -37,8 +37,24 @@ const Level1Arena = () => {
     isListening,
     startListening,
     stopListening,
-    resetTranscript
+    resetTranscript,
   } = useSpeechRecognition();
+
+  /* ================= TIMER ================= */
+
+  function handleTimeUp() {
+    if (isRecording) {
+      stopRecording();
+      stopListening();
+    }
+
+    setTimeout(() => {
+      if (audioBlob) {
+        submitRecording(audioBlob, currentParticipant?.id);
+      }
+      handleNextTurn();
+    }, 800);
+  }
 
   const {
     timeRemaining,
@@ -48,8 +64,10 @@ const Level1Arena = () => {
     stop: stopTimer,
     reset: resetTimer,
     timeColor,
-    progress
+    progress,
   } = useGameTimer(gameSettings.speakingTime, handleTimeUp);
+
+  /* ================= LOCAL STATE ================= */
 
   const [currentParticipant, setCurrentParticipant] = useState(null);
   const [isMyTurn, setIsMyTurn] = useState(false);
@@ -57,38 +75,24 @@ const Level1Arena = () => {
   useEffect(() => {
     if (participants.length > 0 && currentTurn < participants.length) {
       setCurrentParticipant(participants[currentTurn]);
-      // Check if it's current user's turn (you'd need user ID comparison)
-      setIsMyTurn(currentTurn === 0); // Simplified for demo
+      setIsMyTurn(currentTurn === 0); // TODO: replace with userId check
     }
   }, [currentTurn, participants]);
 
-  function handleTimeUp() {
-    if (isRecording) {
-      stopRecording();
-      stopListening();
-    }
-    
-    // Auto-submit recording and move to next turn
-    setTimeout(() => {
-      if (audioBlob) {
-        submitRecording(audioBlob, currentParticipant?.id);
-      }
-      handleNextTurn();
-    }, 1000);
-  }
+  /* ================= HANDLERS ================= */
 
   const handleStartTurn = () => {
+    resetTranscript();
     startTimer();
     startRecording();
     startListening();
-    resetTranscript();
   };
 
   const handleEndTurn = () => {
     stopTimer();
     stopRecording();
     stopListening();
-    
+
     if (audioBlob) {
       submitRecording(audioBlob, currentParticipant?.id);
     }
@@ -101,64 +105,74 @@ const Level1Arena = () => {
     nextTurn();
   };
 
-  if (gameStatus !== 'active') {
+  /* ================= WAITING STATE ================= */
+
+  if (gameStatus !== "active") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+      <div className="arena-wait">
+        <div className="card text-center">
           <div className="text-4xl mb-4">🎮</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Waiting for game to start...</h2>
-          <p className="text-gray-400">Get ready for Level 1: Structured Speaking</p>
+          <h2 className="heading-card mb-2">
+            Waiting for game to start...
+          </h2>
+          <p className="text-tertiary">
+            Get ready for Level 1: Structured Speaking
+          </p>
         </div>
       </div>
     );
   }
 
+  /* ================= MAIN UI ================= */
+
   return (
-    <div className="min-h-screen bg-gradient-dark p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="glass rounded-3xl p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-cyber rounded-2xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Level 1: Structured Speaking</h1>
-                <p className="text-gray-400">Turn-based discussions with time limits</p>
-              </div>
+    <div className="arena-page">
+      <div className="arena-container">
+        {/* ================= HEADER ================= */}
+        <div className="card arena-header">
+          <div className="arena-header-left">
+            <div className="arena-icon">
+              <Users size={22} />
             </div>
-            
-            <div className="text-right">
-              <div className="text-sm text-gray-400">Current Turn</div>
-              <div className="text-xl font-bold text-white">
-                {currentTurn + 1} of {participants.length}
-              </div>
+
+            <div>
+              <h1 className="heading-card">
+                Level 1: Structured Speaking
+              </h1>
+              <p className="text-tertiary">
+                Turn-based discussions with time limits
+              </p>
             </div>
           </div>
 
-          {/* Topic Display */}
+          <div className="arena-turn">
+            <span className="text-muted text-sm">Current Turn</span>
+            <div className="arena-turn-value">
+              {currentTurn + 1} / {participants.length}
+            </div>
+          </div>
+
           <TopicDisplay topic={topic} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Game Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Current Speaker & Timer */}
-            <div className="glass rounded-3xl p-8">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-cyber rounded-full mb-4 animate-pulse-neon">
-                  <div className="text-2xl">👤</div>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {currentParticipant?.name || 'Unknown Speaker'}
-                </h3>
-                <p className="text-gray-400">
-                  {isMyTurn ? "It's your turn to speak!" : "Currently speaking..."}
-                </p>
-              </div>
+        {/* ================= BODY ================= */}
+        <div className="arena-grid-main">
+          {/* ===== MAIN COLUMN ===== */}
+          <div className="arena-main">
+            {/* Speaker Card */}
+            <div className="card arena-speaker">
+              <div className="arena-speaker-avatar">👤</div>
 
-              {/* Speech Timer */}
+              <h3 className="heading-card">
+                {currentParticipant?.name || "Unknown Speaker"}
+              </h3>
+
+              <p className="text-tertiary">
+                {isMyTurn
+                  ? "It's your turn to speak!"
+                  : "Currently speaking..."}
+              </p>
+
               <SpeechTimer
                 timeRemaining={timeRemaining}
                 formattedTime={formattedTime}
@@ -168,42 +182,38 @@ const Level1Arena = () => {
               />
 
               {/* Controls */}
-              <div className="flex justify-center space-x-4 mt-8">
-                {isMyTurn && (
-                  <>
-                    {!isActive ? (
-                      <button
-                        onClick={handleStartTurn}
-                        className="btn btn-primary flex items-center space-x-2 px-8 py-4"
-                      >
-                        <Play className="w-6 h-6" />
-                        <span>Start Speaking</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleEndTurn}
-                        className="btn btn-secondary flex items-center space-x-2 px-8 py-4"
-                      >
-                        <Pause className="w-6 h-6" />
-                        <span>End Turn</span>
-                      </button>
-                    )}
-                  </>
-                )}
-                
-                {!isMyTurn && (
+              <div className="arena-controls">
+                {isMyTurn ? (
+                  !isActive ? (
+                    <button
+                      onClick={handleStartTurn}
+                      className="btn btn-primary"
+                    >
+                      <Play size={18} />
+                      Start Speaking
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleEndTurn}
+                      className="btn btn-secondary"
+                    >
+                      <Pause size={18} />
+                      End Turn
+                    </button>
+                  )
+                ) : (
                   <button
                     onClick={handleNextTurn}
-                    className="btn btn-ghost flex items-center space-x-2 px-6 py-3"
+                    className="btn btn-outline"
                   >
-                    <SkipForward className="w-5 h-5" />
-                    <span>Next Turn</span>
+                    <SkipForward size={18} />
+                    Next Turn
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Voice Recorder */}
+            {/* Recorder */}
             {isMyTurn && (
               <VoiceRecorder
                 isRecording={isRecording}
@@ -214,19 +224,16 @@ const Level1Arena = () => {
               />
             )}
 
-            {/* AI Feedback */}
             <AIFeedback analysis={aiAnalysis} />
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Participants List */}
+          {/* ===== SIDEBAR ===== */}
+          <div className="arena-sidebar">
             <ParticipantsList
               participants={participants}
               currentTurn={currentTurn}
             />
 
-            {/* Live Scoreboard */}
             <LiveScoreboard />
           </div>
         </div>
